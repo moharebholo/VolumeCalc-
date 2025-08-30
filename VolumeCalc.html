@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <title>حاسبة حجم الإسمنت وكمية سائل الحفر</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: "Tahoma", Arial, sans-serif; background:#f4f6f9; margin:0; padding:20px; direction:rtl; color:#222; }
+    .container { max-width:820px; margin:28px auto; background:#fff; padding:24px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08); }
+    h1 { text-align:center; margin:0 0 14px; font-size:20px; color:#1f2937; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+    label { font-weight:600; font-size:13px; color:#333; }
+    select, input[type="number"] { width:100%; padding:10px; margin-top:6px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; background:#fff; box-sizing:border-box; }
+    .full { grid-column:1 / -1; }
+    .hint { font-size:12px; color:#6b7280; margin-top:6px; }
+    button { width:100%; padding:12px; background:#0b69d6; color:#fff; border:none; border-radius:8px; font-size:15px; cursor:pointer; transition:background .18s ease; }
+    button:hover { background:#084fa8; }
+    .results { margin-top:18px; padding:14px; background:#fafafa; border:1px solid #e6e9ee; border-radius:10px; }
+    .results h2 { margin:0 0 10px; font-size:16px; color:#111827; }
+    .results p { margin:6px 0; color:#374151; font-size:14px; }
+    .warn { color:#b45309; font-size:13px; margin-top:10px; }
+    footer { margin-top:18px; text-align:center; padding:12px; background:#2c3e50; color:#fff; border-radius:8px; }
+    @media (max-width:640px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>حاسبة حجم الإسمنت وكمية سائل الحفر</h1>
+
+    <div class="grid">
+      <!-- Hole -->
+      <div>
+        <label>قطر الحفرة (inch) — اختر أو ادخل يدوياً</label>
+        <select id="hole_select" onchange="onSelectFill('hole_select','hole_manual')">
+          <option value="">اختر قطر الحفرة</option>
+          <option value="6">6</option>
+          <option value="6.5">6.5</option>
+          <option value="7.875">7.875</option>
+          <option value="8.5">8.5</option>
+          <option value="9.875">9.875</option>
+          <option value="12.25">12.25</option>
+          <option value="14.75">14.75</option>
+          <option value="17.5">17.5</option>
+          <option value="20">20</option>
+          <option value="26">26</option>
+          <option value="36">36</option>
+          <option value="manual">إدخال يدوي</option>
+        </select>
+        <input type="number" id="hole_manual" placeholder="أدخل القطر بالإنش (مثال: 8.5)" />
+      </div>
+
+      <!-- Dc (OD) -->
+      <div>
+        <label>Dc — القطر الخارجي للـ casing (inch) — اختر أو ادخل يدوياً</label>
+        <select id="dc_select" onchange="onSelectFill('dc_select','dc_manual')">
+          <option value="">اختر Dc</option>
+          <option value="4.5">4.5</option>
+          <option value="5">5</option>
+          <option value="5.5">5.5</option>
+          <option value="7">7</option>
+          <option value="7.625">7.625</option>
+          <option value="9.625">9.625</option>
+          <option value="10.75">10.75</option>
+          <option value="13.375">13.375</option>
+          <option value="16">16</option>
+          <option value="20">20</option>
+          <option value="manual">إدخال يدوي</option>
+        </select>
+        <input type="number" id="dc_manual" placeholder="أدخل Dc بالإنش (مثال: 9.625)" />
+      </div>
+
+      <!-- Di (ID) -->
+      <div>
+        <label>Di — القطر الداخلي للـ casing (inch) — اختر أو ادخل يدوياً</label>
+        <select id="di_select" onchange="onSelectFill('di_select','di_manual')">
+          <option value="">اختر Di</option>
+          <option value="3.826">ID تقريبية ل 4.5"</option>
+          <option value="4.276">ID تقريبية ل 5"</option>
+          <option value="4.778">ID تقريبية ل 5.5"</option>
+          <option value="6.184">ID تقريبية ل 7"</option>
+          <option value="6.366">ID تقريبية شائعة</option>
+          <option value="8.535">ID تقريبية ل 9.625"</option>
+          <option value="10.05">ID تقريبية ل 10.75"</option>
+          <option value="12.415">ID تقريبية ل 13.375"</option>
+          <option value="manual">إدخال يدوي</option>
+        </select>
+        <input type="number" id="di_manual" placeholder="أدخل Di بالإنش (مثال: 4.778)" />
+      </div>
+
+      <!-- depth L -->
+      <div>
+        <label>الطول/العمق L (m)</label>
+        <input type="number" id="depth" placeholder="مثال: 100" step="0.01" />
+      </div>
+
+      <!-- Li -->
+      <div>
+        <label>Li — طول الإسمنت داخل الأنبوب (m)</label>
+        <input type="number" id="li" placeholder="مثال: 1 (اتركه فارغاً ليكون 0)" step="0.01" />
+        <div class="hint">إن تركت الخانة فارغة ستعامل كـ 0. إن كانت أكبر من العمق فستُخصم حتى العمق وتُعرض تنبيهاً.</div>
+      </div>
+
+      <!-- safety -->
+      <div>
+        <label>عامل الأمان (%)</label>
+        <input type="number" id="safety" placeholder="مثال: 10" step="0.1" value="10" />
+      </div>
+
+      <!-- button full width -->
+      <div class="full">
+        <button onclick="calculate()">احسب</button>
+      </div>
+    </div>
+
+    <div class="results" id="results"></div>
+    <div id="warn" class="warn"></div>
+
+    <footer>للتواصل: Mohammedkhebbaz@gmail.com</footer>
+  </div>
+
+<script>
+  // ملأ الحقول اليدوية عند الاختيار من القوائم
+  function onSelectFill(selId, manualId) {
+    const sel = document.getElementById(selId);
+    const manual = document.getElementById(manualId);
+    if (sel.value === "manual") {
+      manual.style.display = "block";
+      manual.value = "";
+      manual.focus();
+    } else {
+      manual.style.display = "block";
+      manual.value = sel.value || "";
+    }
+  }
+
+  function readValue(selectId, manualId) {
+    const selVal = document.getElementById(selectId).value;
+    const manualVal = document.getElementById(manualId).value;
+    if (manualVal !== "") {
+      const v = parseFloat(manualVal);
+      return isNaN(v) ? NaN : v;
+    }
+    if (selVal !== "" && selVal !== "manual") {
+      const v = parseFloat(selVal);
+      return isNaN(v) ? NaN : v;
+    }
+    return NaN;
+  }
+
+  function inchToMeter(inch) { return inch * 0.0254; }
+
+  function calculate() {
+    document.getElementById('results').innerHTML = "";
+    document.getElementById('warn').innerText = "";
+
+    // قراءة الأقطار ( إنش ) — أولوية للإدخال اليدوي إن وُجد
+    const Dh_in = readValue('hole_select','hole_manual');
+    const Dc_in = readValue('dc_select','dc_manual');
+    const Di_in = readValue('di_select','di_manual');
+
+    const depth = parseFloat(document.getElementById('depth').value);
+    let Li = parseFloat(document.getElementById('li').value);
+    const safetyPercent = parseFloat(document.getElementById('safety').value) || 0;
+
+    // التعامل مع Li الفارغ كـ 0
+    if (isNaN(Li)) Li = 0;
+
+    // تحقق من الإدخالات الأساسية
+    if (isNaN(Dh_in) || isNaN(Dc_in) || isNaN(Di_in) || isNaN(depth)) {
+      document.getElementById('results').innerHTML = '<p>الرجاء إكمال جميع الحقول الأساسية (أقطار وعمق).</p>';
+      return;
+    }
+
+    if (Dh_in <= Dc_in) {
+      document.getElementById('results').innerHTML = '<p>خطأ: قطر الحفرة يجب أن يكون أكبر من Dc (القطر الخارجي للأنبوب).</p>';
+      return;
+    }
+    if (depth <= 0) {
+      document.getElementById('results').innerHTML = '<p>الرجاء إدخال عمق موجَب.</p>';
+      return;
+    }
+
+    // clamp Li to depth (إذا أدخلت Li أكبر من العمق نضبطها وننبه)
+    if (Li > depth) {
+      document.getElementById('warn').innerText = 'تنبيه: قيمـة Li أكبر من العمق؛ تم ضبط Li = depth لحسابات منطقية.';
+      Li = depth;
+    }
+
+    // تحويل الإنش إلى متر
+    const Dh_m = inchToMeter(Dh_in);
+    const Dc_m = inchToMeter(Dc_in);
+    const Di_m = inchToMeter(Di_in);
+
+    // المساحات (م²)
+    const A_hole = Math.PI * Math.pow(Dh_m/2, 2);
+    const A_casing_ext = Math.PI * Math.pow(Dc_m/2, 2); // تؤثر في الفراغ الحلقي
+    const A_casing_int = Math.PI * Math.pow(Di_m/2, 2); // تؤثر في Li و Mud
+
+    // حسابات الحجم (م³)
+    const V_annulus = (A_hole - A_casing_ext) * depth;       // حجم الفراغ الحلقي
+    const V_Li = A_casing_int * Li;                          // حجم عمود الإسمنت داخل الأنبوب (يُضاف للإسمنت)
+    const V_cement_raw = V_annulus + V_Li;                   // قبل عامل الأمان
+    const V_cement_withSafety = V_cement_raw * (1 + safetyPercent/100);
+
+    // حجم سائل الحفر = A_casing_int * (depth - Li)  (أصغر من الصفر => نضبطه إلى صفر)
+    let V_mud = A_casing_int * (depth - Li);
+    if (V_mud < 0) V_mud = 0;
+
+    // عرض النتائج
+    const out = `
+      <h2>النتائج</h2>
+      <p>حجم الفراغ الحلقي (Annulus): <strong>${V_annulus.toFixed(3)}</strong> م³</p>
+      <p>حجم Li داخل الأنبوب: <strong>${V_Li.toFixed(3)}</strong> م³</p>
+      <p>حجم الإسمنت قبل عامل الأمان: <strong>${V_cement_raw.toFixed(3)}</strong> م³</p>
+      <p>حجم الإسمنت بعد تطبيق عامل الأمان (${safetyPercent}%): <strong>${V_cement_withSafety.toFixed(3)}</strong> م³</p>
+      <p>حجم سائل الحفر المطلوب: <strong>${V_mud.toFixed(3)}</strong> م³</p>
+    `;
+    document.getElementById('results').innerHTML = out;
+  }
+
+  // إظهار/تهيئة الحقول اليدوية عند التحميل
+  document.querySelectorAll('input[id$="_manual"]').forEach(i => i.style.display = 'block');
+</script>
+</body>
+</html>
